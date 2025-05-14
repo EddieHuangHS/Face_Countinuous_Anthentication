@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.media.Image;
+import android.util.Log;
 import android.util.Size;
 
 import androidx.camera.core.*;
@@ -16,6 +17,16 @@ import com.google.common.util.concurrent.ListenableFuture;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import android.graphics.Bitmap;
+import androidx.camera.core.ImageProxy;
+import com.google.mlkit.vision.common.InputImage;
+
+import android.graphics.YuvImage;
+import android.graphics.BitmapFactory;
+import android.graphics.Rect;
+import java.io.ByteArrayOutputStream;
+
 
 public class CameraXWrapper {
     public interface FrameCallback {
@@ -43,10 +54,21 @@ public class CameraXWrapper {
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build();
 
+//                imageAnalysis.setAnalyzer(executor, image -> {
+//                    Bitmap bitmap = imageToBitmap(image);
+//                    if (bitmap != null) {
+//                        callback.onFrame(bitmap);
+//                    }
+//                    image.close();
+//                });
+                // 在 imageAnalysis.setAnalyzer 中添加：
                 imageAnalysis.setAnalyzer(executor, image -> {
+                    Log.d("CameraXWrapper", "Image frame received");
                     Bitmap bitmap = imageToBitmap(image);
                     if (bitmap != null) {
                         callback.onFrame(bitmap);
+                    } else {
+                        Log.w("CameraXWrapper", "Bitmap is null, frame dropped");
                     }
                     image.close();
                 });
@@ -77,8 +99,35 @@ public class CameraXWrapper {
 //    }
 
     // TODO: 暂时跳过图像转换，后期再处理
+    @androidx.camera.core.ExperimentalGetImage
     private Bitmap imageToBitmap(ImageProxy image) {
-        return null; // 暂时跳过图像转换
+        Image mediaImage = image.getImage();
+        if (mediaImage == null) return null;
+
+        int width = image.getWidth();
+        int height = image.getHeight();
+
+        ByteBuffer yBuffer = image.getPlanes()[0].getBuffer(); // Y
+        ByteBuffer uBuffer = image.getPlanes()[1].getBuffer(); // U
+        ByteBuffer vBuffer = image.getPlanes()[2].getBuffer(); // V
+
+        int ySize = yBuffer.remaining();
+        int uSize = uBuffer.remaining();
+        int vSize = vBuffer.remaining();
+
+        byte[] nv21 = new byte[ySize + uSize + vSize];
+
+        yBuffer.get(nv21, 0, ySize);
+        vBuffer.get(nv21, ySize, vSize); // 注意：顺序是 VU，而不是 UV
+        uBuffer.get(nv21, ySize + vSize, uSize);
+
+        YuvImage yuvImage = new YuvImage(nv21, ImageFormat.NV21, width, height, null);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        yuvImage.compressToJpeg(new Rect(0, 0, width, height), 100, out);
+        byte[] jpegBytes = out.toByteArray();
+
+        return BitmapFactory.decodeByteArray(jpegBytes, 0, jpegBytes.length);
     }
+
 
 }

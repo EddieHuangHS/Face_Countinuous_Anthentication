@@ -3,6 +3,7 @@ package com.example.bankingapp;
 import android.content.*;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -18,10 +19,24 @@ public class ScoreChartActivity extends AppCompatActivity {
     private List<Entry> entries;
     private int timeIndex = 0;
 
+//    private final BroadcastReceiver scoreReceiver = new BroadcastReceiver() {
+//        @Override
+//        public void onReceive(Context context, Intent intent) {
+//            float score = intent.getFloatExtra("score", 0);
+//            entries.add(new Entry(timeIndex++, score));
+//            dataSet.notifyDataSetChanged();
+//            chart.getData().notifyDataChanged();
+//            chart.notifyDataSetChanged();
+//            chart.invalidate();
+//        }
+//    };
+
     private final BroadcastReceiver scoreReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             float score = intent.getFloatExtra("score", 0);
+            Log.d("ScoreChartActivity", "Received broadcast score: " + score);
+
             entries.add(new Entry(timeIndex++, score));
             dataSet.notifyDataSetChanged();
             chart.getData().notifyDataChanged();
@@ -29,6 +44,7 @@ public class ScoreChartActivity extends AppCompatActivity {
             chart.invalidate();
         }
     };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

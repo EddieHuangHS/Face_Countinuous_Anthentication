@@ -6,11 +6,13 @@ import android.graphics.Bitmap;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
 public class FaceAuthService extends Service {
+    private static final String TAG = "FaceAuthService";
     private static final String CHANNEL_ID = "FaceAuthChannel";
     private final IBinder binder = new LocalBinder();
     private CameraXWrapper cameraXWrapper;
@@ -31,12 +33,18 @@ public class FaceAuthService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.d(TAG, "FaceAuthService created");
+
         createNotification();
         faceProcessor = new FaceProcessor(this);
+
         cameraXWrapper = new CameraXWrapper(this, bitmap -> {
+            Log.d(TAG, "Received frame from camera");
             float score = faceProcessor.verify(bitmap);
+            Log.d(TAG, "Score computed: " + score);
             broadcastScore(score);
         });
+
         cameraXWrapper.start();
     }
 
@@ -58,8 +66,11 @@ public class FaceAuthService extends Service {
     }
 
     private void broadcastScore(float score) {
+        Log.d("FaceAuthService", "Broadcasting score: " + score);
         Intent intent = new Intent("com.example.SCORE_UPDATE");
+        intent.setPackage("com.example.bankingapp"); // 指定接收包名！！
         intent.putExtra("score", score);
+        intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES); // 保证接收方即使没启动也能接收
         sendBroadcast(intent);
     }
 }

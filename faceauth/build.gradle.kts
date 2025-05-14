@@ -46,4 +46,7 @@ dependencies {
 // CameraX 图像分析
     implementation("androidx.camera:camera-view:1.3.0")
     implementation("androidx.camera:camera-extensions:1.3.0")
+
+    // google ML kit
+    implementation("com.google.mlkit:vision-common:17.3.0")
 }
