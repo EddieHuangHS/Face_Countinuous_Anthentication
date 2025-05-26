@@ -21,10 +21,10 @@ std::vector<float> ArcFace::getFeature(unsigned char* bgr, int w, int h) {
     resized.substract_mean_normalize(mean_vals, norm_vals);
 
     ncnn::Extractor ex = net.create_extractor();
-    ex.input("data", resized);
+    ex.input("input.1", resized);
 
     ncnn::Mat out;
-    ex.extract("fc1", out);
+    ex.extract("683", out);
 
     std::vector<float> feat(512);
     for (int i = 0; i < 512; ++i) {

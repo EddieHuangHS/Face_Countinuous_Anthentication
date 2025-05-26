@@ -3,58 +3,87 @@
 #include <cmath>
 #include <android/log.h>
 #include <android/asset_manager_jni.h>
+#include <android/bitmap.h>
 #include "arcface.h"
+
+#define TAG "ArcFaceJNI"
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
 
 static ArcFace* arcface = nullptr;
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_faceauth_FaceRecognizer_init(JNIEnv* env, jobject,
-jobject assetManager,
-        jstring paramFile,
-jstring binFile) {
-if (arcface) return;
+Java_com_example_bankingapp_RegisterActivity_init(JNIEnv* env, jobject thiz,
+                                                  jobject assetManager,
+                                                  jstring paramFile,
+                                                  jstring binFile) {
+    if (arcface) return;
 
-AAssetManager* mgr = AAssetManager_fromJava(env, assetManager);
-const char* param_path = env->GetStringUTFChars(paramFile, nullptr);
-const char* bin_path = env->GetStringUTFChars(binFile, nullptr);
+    AAssetManager* mgr = AAssetManager_fromJava(env, assetManager);
+    const char* param_path = env->GetStringUTFChars(paramFile, nullptr);
+    const char* bin_path = env->GetStringUTFChars(binFile, nullptr);
 
-arcface = new ArcFace();
-arcface->loadModel(mgr, param_path, bin_path);
+    arcface = new ArcFace();
+    arcface->loadModel(mgr, param_path, bin_path);
 
-env->ReleaseStringUTFChars(paramFile, param_path);
-env->ReleaseStringUTFChars(binFile, bin_path);
+    env->ReleaseStringUTFChars(paramFile, param_path);
+    env->ReleaseStringUTFChars(binFile, bin_path);
+    LOGI("ArcFace model loaded.");
 }
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
-        Java_com_example_faceauth_FaceRecognizer_getEmbedding(JNIEnv* env, jobject,
-                                                              jbyteArray imageData, jint width, jint height) {
-if (!arcface) return nullptr;
+Java_com_example_bankingapp_RegisterActivity_extractFeature(JNIEnv *env, jobject, jobject bitmap) {
+    if (!arcface) {
+        LOGE("ArcFace not initialized.");
+        return nullptr;
+    }
 
-jbyte* data = env->GetByteArrayElements(imageData, nullptr);
-std::vector<float> embedding = arcface->getFeature(reinterpret_cast<unsigned char*>(data), width, height);
-env->ReleaseByteArrayElements(imageData, data, 0);
+    AndroidBitmapInfo info;
+    void* pixels = nullptr;
 
-jfloatArray result = env->NewFloatArray(embedding.size());
-env->SetFloatArrayRegion(result, 0, embedding.size(), embedding.data());
-return result;
-}
+    if (AndroidBitmap_getInfo(env, bitmap, &info) < 0) {
+        LOGE("Failed to get bitmap info.");
+        return nullptr;
+    }
+    LOGI("Bitmap info: width=%d, height=%d, format=%d", info.width, info.height, info.format);
 
-extern "C"
-JNIEXPORT jfloat JNICALL
-        Java_com_example_faceauth_FaceRecognizer_cosineSimilarity(JNIEnv* env, jobject,
-                                                                  jfloatArray emb1, jfloatArray emb2) {
-int len = env->GetArrayLength(emb1);
-std::vector<float> a(len), b(len);
-env->GetFloatArrayRegion(emb1, 0, len, a.data());
-env->GetFloatArrayRegion(emb2, 0, len, b.data());
+    if (AndroidBitmap_lockPixels(env, bitmap, &pixels) < 0) {
+        LOGE("Failed to lock pixels.");
+        return nullptr;
+    }
 
-float dot = 0.0f, normA = 0.0f, normB = 0.0f;
-for (int i = 0; i < len; ++i) {
-dot += a[i] * b[i];
-normA += a[i] * a[i];
-normB += b[i] * b[i];
-}
-return dot / (std::sqrt(normA) * std::sqrt(normB) + 1e-5f);
+    int width = info.width;
+    int height = info.height;
+    unsigned char* bgrData = new unsigned char[width * height * 3];
+    uint32_t* rgba = (uint32_t*)pixels;
+
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            uint32_t pixel = rgba[y * width + x];
+            int r = (pixel >> 16) & 0xFF;
+            int g = (pixel >> 8) & 0xFF;
+            int b = pixel & 0xFF;
+            int idx = (y * width + x) * 3;
+            bgrData[idx + 0] = b;
+            bgrData[idx + 1] = g;
+            bgrData[idx + 2] = r;
+        }
+    }
+
+    AndroidBitmap_unlockPixels(env, bitmap);
+
+    std::vector<float> embedding = arcface->getFeature(bgrData, width, height);
+    delete[] bgrData;
+
+    LOGI("Embedding size: %zu", embedding.size());
+    if (embedding.empty()) {
+        LOGE("Embedding failed: size = 0");
+        return nullptr;
+    }
+
+    jfloatArray result = env->NewFloatArray(embedding.size());
+    env->SetFloatArrayRegion(result, 0, embedding.size(), embedding.data());
+    return result;
 }

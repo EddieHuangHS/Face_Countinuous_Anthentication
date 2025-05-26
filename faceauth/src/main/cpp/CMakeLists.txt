@@ -19,14 +19,16 @@ target_include_directories(arcface PRIVATE
         ${CMAKE_SOURCE_DIR}/ncnn/include/ncnn
 )
 
-# 查找日志库和 android 库
+# 查找所需系统库
 find_library(log-lib log)
-find_library(android-lib android)   # ✅ 添加这行！
+find_library(android-lib android)
+find_library(jnigraphics-lib jnigraphics)  # ✅ 修复 Bitmap undefined symbol 问题
 
-# 链接库
+# 链接日志库、Android 库和 jnigraphics 库
 target_link_libraries(
         arcface
         ncnn
         ${log-lib}
-        ${android-lib}   # ✅ 添加这行！
+        ${android-lib}
+        ${jnigraphics-lib}  # ✅ 添加此项用于 Bitmap 支持
 )
