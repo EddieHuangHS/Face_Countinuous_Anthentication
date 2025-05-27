@@ -19,12 +19,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 
 public class RegisterActivity extends AppCompatActivity {
 
     private ImageView imageView;
     private Button captureButton, registerButton;
     private Bitmap latestBitmap;
+    private boolean arcfaceInitialized = false;
 
     static {
         System.loadLibrary("arcface");
@@ -43,7 +45,12 @@ public class RegisterActivity extends AppCompatActivity {
         registerButton = findViewById(R.id.registerButton);
 
         // 初始化 ArcFace 模型
-        init(getAssets(), "arcface-opt.param", "arcface-opt.bin");
+        try {
+            init(getAssets(), "arcface-opt.param", "arcface-opt.bin");
+            arcfaceInitialized = true;
+        } catch (Exception e) {
+            Toast.makeText(this, "ArcFace 初始化失败", Toast.LENGTH_SHORT).show();
+        }
 
         captureButton.setOnClickListener(v -> openCamera());
         registerButton.setOnClickListener(v -> registerFace());
@@ -65,6 +72,11 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void registerFace() {
+        if (!arcfaceInitialized) {
+            Toast.makeText(this, "ArcFace 未初始化", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         if (latestBitmap == null) {
             Toast.makeText(this, "请先拍摄照片", Toast.LENGTH_SHORT).show();
             return;
@@ -76,6 +88,13 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
+        // 检查是否为重复人脸
+        if (isFaceAlreadyRegistered(feature)) {
+            Toast.makeText(this, "该用户人脸数据已注册", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        // 弹出输入用户名窗口
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("请输入用户名");
 
@@ -89,6 +108,13 @@ public class RegisterActivity extends AppCompatActivity {
                 Toast.makeText(this, "用户名不能为空", Toast.LENGTH_SHORT).show();
                 return;
             }
+
+            File faceImage = new File(getFilesDir(), "face_images/" + username + ".jpg");
+            if (faceImage.exists()) {
+                Toast.makeText(this, "用户名已存在，请使用其他用户名", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             saveImage(username, latestBitmap);
             saveFeatureToFile(username, feature);
             Toast.makeText(this, "注册成功", Toast.LENGTH_SHORT).show();
@@ -119,5 +145,44 @@ public class RegisterActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private boolean isFaceAlreadyRegistered(float[] newFeature) {
+        File filesDir = getFilesDir();
+        File[] allFiles = filesDir.listFiles();
+
+        if (allFiles == null) return false;
+
+        for (File file : allFiles) {
+            if (file.getName().endsWith("_feature.txt")) {
+                try {
+                    String[] values = new String(Files.readAllBytes(file.toPath())).trim().split("\\s+");
+                    if (values.length != 128) continue;
+
+                    float[] existing = new float[128];
+                    for (int i = 0; i < 128; i++) {
+                        existing[i] = Float.parseFloat(values[i]);
+                    }
+
+                    float sim = cosineSimilarity(newFeature, existing);
+                    if (sim > 0.4f) return true;
+
+                } catch (Exception e) {
+                    // 打印日志，跳过损坏文件
+                    e.printStackTrace();
+                }
+            }
+        }
+        return false;
+    }
+
+    private float cosineSimilarity(float[] a, float[] b) {
+        float dot = 0f, normA = 0f, normB = 0f;
+        for (int i = 0; i < a.length; i++) {
+            dot += a[i] * b[i];
+            normA += a[i] * a[i];
+            normB += b[i] * b[i];
+        }
+        return dot / (float)(Math.sqrt(normA) * Math.sqrt(normB) + 1e-5);
     }
 }
