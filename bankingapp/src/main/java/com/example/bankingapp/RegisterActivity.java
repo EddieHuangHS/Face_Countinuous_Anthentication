@@ -44,7 +44,7 @@ public class RegisterActivity extends AppCompatActivity {
         captureButton = findViewById(R.id.captureButton);
         registerButton = findViewById(R.id.registerButton);
 
-        // 初始化 ArcFace 模型
+        // 初始化 ArcFace 模型  (已成功)
         try {
             init(getAssets(), "arcface-opt.param", "arcface-opt.bin");
             arcfaceInitialized = true;
