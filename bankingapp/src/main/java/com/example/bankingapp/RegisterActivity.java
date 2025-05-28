@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.InputType;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -157,24 +158,27 @@ public class RegisterActivity extends AppCompatActivity {
             if (file.getName().endsWith("_feature.txt")) {
                 try {
                     String[] values = new String(Files.readAllBytes(file.toPath())).trim().split("\\s+");
-                    if (values.length != 128) continue;
 
-                    float[] existing = new float[128];
-                    for (int i = 0; i < 128; i++) {
+                    // ✅ 更新为512维
+                    if (values.length != 512) continue;
+
+                    float[] existing = new float[512];
+                    for (int i = 0; i < 512; i++) {
                         existing[i] = Float.parseFloat(values[i]);
                     }
 
                     float sim = cosineSimilarity(newFeature, existing);
-                    if (sim > 0.4f) return true;
+                    Log.d("FaceSimCheck", "Similarity with " + file.getName() + " is: " + sim);
+                    if (sim > 0.7f) return true;
 
                 } catch (Exception e) {
-                    // 打印日志，跳过损坏文件
                     e.printStackTrace();
                 }
             }
         }
         return false;
     }
+
 
     private float cosineSimilarity(float[] a, float[] b) {
         float dot = 0f, normA = 0f, normB = 0f;
