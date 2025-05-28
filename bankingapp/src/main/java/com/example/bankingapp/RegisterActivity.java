@@ -45,7 +45,7 @@ public class RegisterActivity extends AppCompatActivity {
         captureButton = findViewById(R.id.captureButton);
         registerButton = findViewById(R.id.registerButton);
 
-        // 初始化 ArcFace 模型  (已成功)
+        // 初始化 ArcFace 模型
         try {
             init(getAssets(), "arcface-opt.param", "arcface-opt.bin");
             arcfaceInitialized = true;
@@ -95,7 +95,7 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        // 弹出输入用户名窗口
+        // 输入用户名
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("请输入用户名");
 
@@ -118,7 +118,13 @@ public class RegisterActivity extends AppCompatActivity {
 
             saveImage(username, latestBitmap);
             saveFeatureToFile(username, feature);
-            Toast.makeText(this, "注册成功", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Register Success", Toast.LENGTH_SHORT).show();
+
+            // 注册成功后返回主界面
+            Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+            finish();
         });
 
         builder.setNegativeButton("取消", (dialog, which) -> dialog.cancel());
@@ -159,7 +165,6 @@ public class RegisterActivity extends AppCompatActivity {
                 try {
                     String[] values = new String(Files.readAllBytes(file.toPath())).trim().split("\\s+");
 
-                    // ✅ 更新为512维
                     if (values.length != 512) continue;
 
                     float[] existing = new float[512];
@@ -169,7 +174,7 @@ public class RegisterActivity extends AppCompatActivity {
 
                     float sim = cosineSimilarity(newFeature, existing);
                     Log.d("FaceSimCheck", "Similarity with " + file.getName() + " is: " + sim);
-                    if (sim > 0.7f) return true;
+                    if (sim > 0.65f) return true;
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -179,7 +184,6 @@ public class RegisterActivity extends AppCompatActivity {
         return false;
     }
 
-
     private float cosineSimilarity(float[] a, float[] b) {
         float dot = 0f, normA = 0f, normB = 0f;
         for (int i = 0; i < a.length; i++) {
@@ -187,6 +191,6 @@ public class RegisterActivity extends AppCompatActivity {
             normA += a[i] * a[i];
             normB += b[i] * b[i];
         }
-        return dot / (float)(Math.sqrt(normA) * Math.sqrt(normB) + 1e-5);
+        return dot / (float) (Math.sqrt(normA) * Math.sqrt(normB) + 1e-5);
     }
 }
