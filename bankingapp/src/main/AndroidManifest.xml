@@ -41,5 +41,12 @@
         <activity android:name=".ScoreChartActivity" />
         <activity android:name=".FaceDatabaseActivity" />
         <activity android:name=".RegisterActivity" />
+        <!-- 用户选择并比对界面 -->
+        <activity android:name=".FaceVerifyActivity" />
+        <!-- 注册后台服务（在 faceauth 模块） -->
+        <service
+            android:name="com.example.faceauth.FaceAuthService"
+            android:foregroundServiceType="camera"
+            android:exported="false" />
     </application>
 </manifest>
