@@ -45,12 +45,14 @@ public class RegisterActivity extends AppCompatActivity {
         captureButton = findViewById(R.id.captureButton);
         registerButton = findViewById(R.id.registerButton);
 
+        // Initialize ArcFace model
         // 初始化 ArcFace 模型
         try {
             init(getAssets(), "arcface-opt.param", "arcface-opt.bin");
             arcfaceInitialized = true;
         } catch (Exception e) {
-            Toast.makeText(this, "ArcFace 初始化失败", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Failed to initialize ArcFace", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(this, "ArcFace 初始化失败", Toast.LENGTH_SHORT).show();
         }
 
         captureButton.setOnClickListener(v -> openCamera());
@@ -74,45 +76,56 @@ public class RegisterActivity extends AppCompatActivity {
 
     private void registerFace() {
         if (!arcfaceInitialized) {
-            Toast.makeText(this, "ArcFace 未初始化", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "ArcFace is not initialized", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(this, "ArcFace 未初始化", Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (latestBitmap == null) {
-            Toast.makeText(this, "请先拍摄照片", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please take photo first", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(this, "请先拍摄照片", Toast.LENGTH_SHORT).show();
+
             return;
         }
 
         float[] feature = extractFeature(latestBitmap);
         if (feature == null || feature.length == 0) {
-            Toast.makeText(this, "提取特征失败", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Failed to extract features", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(this, "提取特征失败", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        // Repeated face check
         // 检查是否为重复人脸
         if (isFaceAlreadyRegistered(feature)) {
-            Toast.makeText(this, "该用户人脸数据已注册", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "This face has registered", Toast.LENGTH_LONG).show();
+//            Toast.makeText(this, "该用户人脸数据已注册", Toast.LENGTH_LONG).show();
             return;
         }
 
+        // Enter username
         // 输入用户名
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("请输入用户名");
+        builder.setTitle("Please enter username");
+//        builder.setTitle("请输入用户名");
 
         final EditText input = new EditText(this);
         input.setInputType(InputType.TYPE_CLASS_TEXT);
         builder.setView(input);
 
-        builder.setPositiveButton("确定", (dialog, which) -> {
+        builder.setPositiveButton("Yes", (dialog, which) -> {
+//        builder.setPositiveButton("确定", (dialog, which) -> {
             String username = input.getText().toString().trim();
             if (username.isEmpty()) {
-                Toast.makeText(this, "用户名不能为空", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Username cannot be empty", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(this, "用户名不能为空", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             File faceImage = new File(getFilesDir(), "face_images/" + username + ".jpg");
             if (faceImage.exists()) {
-                Toast.makeText(this, "用户名已存在，请使用其他用户名", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Username exist, please use other name", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(this, "用户名已存在，请使用其他用户名", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -127,7 +140,8 @@ public class RegisterActivity extends AppCompatActivity {
             finish();
         });
 
-        builder.setNegativeButton("取消", (dialog, which) -> dialog.cancel());
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+//        builder.setNegativeButton("取消", (dialog, which) -> dialog.cancel());
         builder.show();
     }
 

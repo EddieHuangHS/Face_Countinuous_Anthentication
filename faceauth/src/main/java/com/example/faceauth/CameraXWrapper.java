@@ -98,7 +98,7 @@ public class CameraXWrapper {
 //        return BitmapUtils.convertYUV420ToBitmap(image);
 //    }
 
-    // TODO: 暂时跳过图像转换，后期再处理
+
     @androidx.camera.core.ExperimentalGetImage
     private Bitmap imageToBitmap(ImageProxy image) {
         Image mediaImage = image.getImage();

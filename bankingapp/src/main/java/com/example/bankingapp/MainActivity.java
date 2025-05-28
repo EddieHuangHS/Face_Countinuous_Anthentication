@@ -26,22 +26,26 @@ public class MainActivity extends AppCompatActivity {
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(40, 60, 40, 60);
 
-        // 👉 注册按钮
+        // 👉 Register Button
         Button btnRegister = new Button(this);
-        btnRegister.setText("注册新用户");
+        btnRegister.setText("Register User");
+//        btnRegister.setText("注册新用户");
         btnRegister.setOnClickListener(v -> {
             startActivity(new Intent(this, RegisterActivity.class));
         });
 
+        // ✅ Jump to FaceVerifyActivity
         // ✅ 修改后：跳转到 FaceVerifyActivity（含选择框和图表）
         Button btnStart = new Button(this);
-        btnStart.setText("开始人脸识别");
+        btnStart.setText("Start Face Verification");
+//        btnStart.setText("开始人脸识别");
         btnStart.setOnClickListener(v -> {
             startActivity(new Intent(this, FaceVerifyActivity.class));
         });
 
         Button btnDatabase = new Button(this);
-        btnDatabase.setText("数据库管理");
+        btnDatabase.setText("Database");
+//        btnDatabase.setText("数据库管理");
         btnDatabase.setOnClickListener(v -> {
             startActivity(new Intent(this, FaceDatabaseActivity.class));
         });

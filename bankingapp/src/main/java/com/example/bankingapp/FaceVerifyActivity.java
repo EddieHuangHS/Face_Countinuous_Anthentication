@@ -54,7 +54,8 @@ public class FaceVerifyActivity extends AppCompatActivity {
         dataSet.setDrawValues(false);
         chart.setData(new LineData(dataSet));
         Description desc = new Description();
-        desc.setText("实时比对得分");
+        desc.setText("Real time score");
+//        desc.setText("实时比对得分");
         chart.setDescription(desc);
 
         loadUserList();
@@ -95,7 +96,8 @@ public class FaceVerifyActivity extends AppCompatActivity {
             }
         }
 
-        if (userList.isEmpty()) userList.add("暂无用户");
+        if (userList.isEmpty()) userList.add("No user");
+//        if (userList.isEmpty()) userList.add("暂无用户");
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, userList);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);

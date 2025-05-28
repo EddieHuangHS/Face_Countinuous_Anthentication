@@ -66,7 +66,8 @@ public class FaceAuthService extends Service {
             if (manager != null) manager.createNotificationChannel(channel);
         }
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("FaceAuth 正在运行")
+                .setContentTitle("FaceAuth is running")
+//                .setContentTitle("FaceAuth 正在运行")
                 .setSmallIcon(android.R.drawable.ic_menu_camera)
                 .build();
         startForeground(1, notification);
@@ -74,7 +75,7 @@ public class FaceAuthService extends Service {
 
     private void broadcastScore(float score) {
         Intent intent = new Intent("com.example.SCORE_UPDATE");
-        intent.setPackage("com.example.bankingapp"); // 目标接收包名
+        intent.setPackage("com.example.bankingapp"); // 目标接收包名(target package name)
         intent.putExtra("score", score);
         intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
         sendBroadcast(intent);

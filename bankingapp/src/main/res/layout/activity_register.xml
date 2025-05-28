@@ -11,17 +11,17 @@
         android:layout_height="300dp"
         android:scaleType="centerCrop"
         android:background="#EEEEEE" />
-
+    <!-- 拍摄人脸 -->
     <Button
         android:id="@+id/captureButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="拍摄人脸" />
-
+        android:text="Photographing Face" />
+    <!-- 注册人脸 -->
     <Button
         android:id="@+id/registerButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="注册人脸" />
+        android:text="Registering Face" />
 
 </LinearLayout>

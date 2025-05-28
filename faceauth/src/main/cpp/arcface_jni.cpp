@@ -12,6 +12,7 @@
 
 static ArcFace* arcface = nullptr;
 
+// ✅ init from RegisterActivity （bankingapp）
 // ✅ RegisterActivity 用的 init（来自 bankingapp 模块）
 extern "C"
 JNIEXPORT void JNICALL
@@ -33,6 +34,7 @@ Java_com_example_bankingapp_RegisterActivity_init(JNIEnv* env, jobject thiz,
     LOGI("ArcFace model loaded from RegisterActivity.");
 }
 
+// ✅ init from FaceRecognizer（faceauth）
 // ✅ FaceRecognizer 用的 init（来自 faceauth 模块）
 extern "C"
 JNIEXPORT void JNICALL
@@ -54,6 +56,7 @@ Java_com_example_faceauth_FaceRecognizer_init(JNIEnv* env, jobject thiz,
     LOGI("ArcFace model loaded from FaceRecognizer.");
 }
 
+// ✅ bankingapp is called when registering: Bitmap ➝ 512-dimensional features
 // ✅ bankingapp 注册时调用：Bitmap ➝ 512维特征
 extern "C"
 JNIEXPORT jfloatArray JNICALL
@@ -109,6 +112,7 @@ Java_com_example_bankingapp_RegisterActivity_extractFeature(JNIEnv *env, jobject
     return result;
 }
 
+// ✅ Backend service comparison call: 512-dimensional feature similarity
 // ✅ 后台服务比对调用：512维特征相似度
 extern "C"
 JNIEXPORT jfloat JNICALL

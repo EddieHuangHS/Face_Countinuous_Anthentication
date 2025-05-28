@@ -10,9 +10,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
+    <!-- 开始认证 -->
     <Button
         android:id="@+id/startButton"
-        android:text="开始认证"
+        android:text="Start Verify"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"/>
